@@ -11,9 +11,10 @@ const priceRoutes = require("./routes/priceRoutes");
 const storeRoutes = require("./routes/storeRoutes");
 const brandRoutes = require("./routes/brandRoutes");
 const unitRoutes = require("./routes/unitRoutes");
-const packageRoutes = require("./routes/packageRoutes")
+const packageRoutes = require("./routes/packageRoutes");
 const paymentRoutes = require("./routes/paymentroutes");
 const compositeItemRoutes = require("./routes/compositeItemRoutes");
+const bodyParser = require("body-parser");
 const app = express();
 
 connectDB();
@@ -23,6 +24,8 @@ app.use(cors({ origin: "*", credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static("public/uploads"));
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 
 app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
@@ -44,7 +47,6 @@ app.use("/api", unitRoutes);
 app.use("/api", paymentRoutes);
 app.use("/api", customerRoutes);
 app.use("/api", packageRoutes);
-
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
