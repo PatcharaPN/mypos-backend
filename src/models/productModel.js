@@ -31,7 +31,7 @@ const productSchema = new Schema(
     createdBy: { type: Schema.Types.ObjectId, ref: "User" },
     productImage: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 productSchema.pre("save", async function (next) {

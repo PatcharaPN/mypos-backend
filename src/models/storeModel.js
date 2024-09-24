@@ -5,6 +5,7 @@ const storeSchema = new Schema({
   storename: { type: String, required: true },
   location: { type: String, required: true },
   owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  storeImage: { type: String },
   products: [{ type: Schema.Types.ObjectId, ref: "Product", default: [] }],
 });
 

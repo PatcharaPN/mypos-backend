@@ -8,6 +8,10 @@ const getAllStore = async (req, res) => {
   }
 };
 const createStore = async (req, res) => {
+  let storeImage = null;
+  if (req.file) {
+    storeImage = req.file.path.replace("public/", "");
+  }
   try {
     const { storename, location, owner, products } = req.body;
     if (!storename) {
@@ -30,6 +34,7 @@ const createStore = async (req, res) => {
       location,
       owner,
       products,
+      storeImage,
     });
     newStore = await newStore.save();
     newStore = await Store.findById(newStore._id)
