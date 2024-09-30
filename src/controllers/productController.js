@@ -187,7 +187,7 @@ const updateProduct = async (req, res) => {
       },
       {
         new: true,
-      }
+      },
     )
       .populate("createdBy")
       .populate("category");

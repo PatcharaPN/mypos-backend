@@ -12,13 +12,16 @@ const storeRoutes = require("./routes/storeRoutes");
 const brandRoutes = require("./routes/brandRoutes");
 const unitRoutes = require("./routes/unitRoutes");
 const packageRoutes = require("./routes/packageRoutes");
+const cronjob = require("./cronJob.js");
 const paymentRoutes = require("./routes/paymentroutes");
 const compositeItemRoutes = require("./routes/compositeItemRoutes");
 const bodyParser = require("body-parser");
+const { connectRedis } = require("./config/cache");
 const app = express();
 
 connectDB();
-
+connectRedis();
+cronjob.start();
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors({ origin: "*", credentials: true }));
 app.use(express.json());
