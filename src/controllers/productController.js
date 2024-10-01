@@ -1,5 +1,6 @@
 const Product = require("../models/productModel");
-
+const redisClient = require("../config/cache.js");
+const redis = redisClient;
 function generateCode(prefix) {
   const randomNumber = Math.floor(10000 + Math.random() * 90000);
   return `${prefix}${randomNumber}`;
@@ -7,9 +8,16 @@ function generateCode(prefix) {
 
 const getProduct = async (req, res) => {
   try {
+    const cacheProduct = await redis.get("products");
+    if (cacheProduct) {
+      return res.status(200).json(JSON.parse(cacheProduct));
+    }
+
     const products = await Product.find()
       .populate("createdBy")
       .populate("category");
+
+    await redis.set("products", JSON.stringify(products));
     res.status(200).json(products);
   } catch (error) {
     console.error("Error fetching products:", error);
@@ -125,7 +133,7 @@ const createProduct = async (req, res) => {
     const populatedProduct = await Product.findById(newProduct._id)
       .populate("createdBy")
       .populate("category");
-
+    await redis.del("products");
     res.status(201).json(populatedProduct);
   } catch (error) {
     console.error("Error creating product:", error);
