@@ -1,4 +1,5 @@
 const Brand = require("../models/brandModel");
+const redisClient = require("../config/cache.js");
 
 const createBrand = async (req, res) => {
   try {
@@ -16,7 +17,7 @@ const createBrand = async (req, res) => {
     });
     await newBrand.save();
     const populatedBrand = await Brand.findById(newBrand._id).populate(
-      "addedBy"
+      "addedBy",
     );
     res.status(201).json(populatedBrand);
   } catch (error) {

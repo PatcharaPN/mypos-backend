@@ -1,12 +1,26 @@
 const Store = require("../models/storeModel");
+const { redisClient } = require("../config/cache.js"); // Import the correct Redis client
+
 const getAllStore = async (req, res) => {
   try {
-    const store = await Store.find().populate("owner");
-    res.status(200).json(store);
+    const cacheStore = await redisClient.get("stores");
+
+    if (cacheStore) {
+      return res.status(200).json({
+        message: "from Cache",
+        data: JSON.parse(cacheStore),
+      });
+    } else {
+      const store = await Store.find().populate("owner");
+      await redisClient.set("stores", JSON.stringify(store));
+      res.status(200).json(store);
+    }
   } catch (error) {
-    console.log("Failed to fetching Store", error);
+    console.log("Failed to fetch Store", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const createStore = async (req, res) => {
   let storeImage = null;
   if (req.file) {
@@ -29,6 +43,7 @@ const createStore = async (req, res) => {
         message: "Owner is required",
       });
     }
+
     let newStore = new Store({
       storename,
       location,
@@ -37,15 +52,18 @@ const createStore = async (req, res) => {
       storeImage,
     });
     newStore = await newStore.save();
+
+    await redisClient.del("stores"); // Use redisClient to delete the cache
+
     newStore = await Store.findById(newStore._id)
       .populate("owner")
       .populate("products");
     res.status(201).json({
-      message: "Store created sucessfully",
+      message: "Store created successfully",
       store: newStore,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error creating store:", error);
     res.status(500).json({
       message: "An error occurred while creating the store",
       error: error.message,
