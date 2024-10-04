@@ -4,7 +4,7 @@ const cacheMiddleWare = async (req, res, next) => {
   const cacheKey = req.originalUrl;
   //Check ว่า method ที่รับเข้ามาเป็นประเภท GET ใช่ไหม
   if (req.method === "GET") {
-    const cacheData = redisClient.get(cacheKey);
+    const cacheData = await redisClient.get(cacheKey);
     //เรียกใช้ Cache ใน redis ตาม cacheKey เมื่อมี cache อยู่
     if (cacheData) {
       return res.status(200).json(JSON.parse(cacheData));
@@ -24,3 +24,4 @@ const cacheMiddleWare = async (req, res, next) => {
   //ไปยัง Function ถัดไป
   next();
 };
+module.exports = cacheMiddleWare;

@@ -1,23 +1,51 @@
 const Store = require("../models/storeModel");
-const { redisClient } = require("../config/cache.js"); // Import the correct Redis client
 
 const getAllStore = async (req, res) => {
   try {
-    const cacheStore = await redisClient.get("stores");
-
-    if (cacheStore) {
-      return res.status(200).json({
-        message: "from Cache",
-        data: JSON.parse(cacheStore),
-      });
-    } else {
-      const store = await Store.find().populate("owner");
-      await redisClient.set("stores", JSON.stringify(store));
-      res.status(200).json(store);
-    }
+    const store = await Store.find().populate("owner");
+    res.status(200).json(store);
   } catch (error) {
-    console.log("Failed to fetch Store", error);
+    console.log("Failed to fetch Stores", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const getStoreById = async (req, res) => {
+  const { storeId } = req.params;
+  try {
+    const findStore = await Store.findById(storeId);
+    if (!findStore) {
+      return res.status(404).json({
+        message: `Store with Id ${storeId} was not found`,
+      });
+    }
+    res.status(200).json(findStore);
+  } catch (error) {
+    console.log("Fail to get Store");
+    res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
+const deleteStore = async (req, res) => {
+  const { storeId } = req.params;
+
+  try {
+    const deleteStoreById = await Store.findByIdAndDelete(storeId);
+    if (!deleteStoreById) {
+      return res.status(404).json({
+        message: `item with ID ${storeId} was not found`,
+      });
+    }
+    res.status(200).json({
+      message: `Item with ID ${storeId} was deleted`,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "An error occurred while deleting the store",
+      error: error.message,
+    });
   }
 };
 
@@ -53,8 +81,6 @@ const createStore = async (req, res) => {
     });
     newStore = await newStore.save();
 
-    await redisClient.del("stores"); // Use redisClient to delete the cache
-
     newStore = await Store.findById(newStore._id)
       .populate("owner")
       .populate("products");
@@ -71,4 +97,4 @@ const createStore = async (req, res) => {
   }
 };
 
-module.exports = { createStore, getAllStore };
+module.exports = { createStore, getAllStore, deleteStore, getStoreById };

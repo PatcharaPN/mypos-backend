@@ -1,5 +1,6 @@
 const Brand = require("../models/brandModel");
 const redisClient = require("../config/cache.js");
+const { default: mongoose } = require("mongoose");
 
 const createBrand = async (req, res) => {
   try {
@@ -27,6 +28,58 @@ const createBrand = async (req, res) => {
     });
   }
 };
+
+const deleteBrand = async (req, res) => {
+  const { brandId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(brandId)) {
+    return res.status(400).json({
+      message: "Invalid brand ID",
+    });
+  }
+  try {
+    const deletedBrand = await Brand.findByIdAndDelete(brandId);
+    if (!deletedBrand) {
+      return res.status(404).json({
+        message: `brand with id ${brandId} was not found`,
+      });
+    }
+    res.status(200).json({
+      message: `Brand with Id ${brandId} was deleted`,
+    });
+  } catch (error) {
+    console.error(`Errorr deleting brand ${error.message}`);
+    res.status(500).json({
+      message: "error when deleting brand",
+      error: error.message,
+    });
+  }
+};
+
+const getBrandById = async (req, res) => {
+  const { brandId } = req.params;
+
+  if (mongoose.Types.ObjectId.isValid(brandId)) {
+    return res.status(400).json({
+      message: "Invalid brand ID",
+    });
+  }
+  try {
+    const findBrand = await Brand.findByIdAndDelete(brandId);
+    if (!findBrand) {
+      return res.status(404).json({
+        message: `Brand with ID ${brandId} was not found`,
+      });
+    }
+    res.status(200).json(findBrand);
+  } catch (error) {
+    console.error(`Error finding brand ${error.message}`);
+    res.status(500).json({
+      message: `An error occured while trying to find the brand`,
+      error: error.message,
+    });
+  }
+};
+
 const getAllBrand = async (req, res) => {
   try {
     const brand = await Brand.find().populate("addedBy");
@@ -39,4 +92,4 @@ const getAllBrand = async (req, res) => {
   }
 };
 
-module.exports = { createBrand, getAllBrand };
+module.exports = { createBrand, getAllBrand, deleteBrand, getBrandById };
